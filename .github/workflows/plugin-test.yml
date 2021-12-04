@@ -8,6 +8,9 @@ jobs:
   get-plugins:
     runs-on: ubuntu-latest
     steps:
+      - uses: styfle/cancel-workflow-action@0.9.1
+        with:
+          access_token: ${{ github.token }}
       - id: plugin_names
         run: echo "::set-output name=plugins::$(curl -s https://api.napari-hub.org/plugins | jq -c 'keys')"
     outputs:
@@ -24,10 +27,6 @@ jobs:
         platform: [macos-latest, windows-latest]
 
     steps:
-      - uses: styfle/cancel-workflow-action@0.9.1
-        with:
-          access_token: ${{ github.token }}
-
       - uses: actions/checkout@v2
 
       - uses: actions/setup-python@v2
