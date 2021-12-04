@@ -7,13 +7,14 @@ on:
 jobs:
   get-plugins:
     runs-on: ubuntu-latest
-    outputs:
-      plugins: ${{ steps.plugin-names.outputs.plugins }}
     steps:
       - name: download
         run: curl -s 'https://api.napari-hub.org/plugins' | jq 'keys' > plugins.json
-      - id: plugin-names
+      - name: Save Plugin Names
+        id: plugin_names
         run: echo "::set-output name=plugins::$(cat ./plugins.json)"
+    outputs:
+      plugins: ${{ steps.plugin_names.outputs.plugins }}
 
   test:
     needs: get-plugins
