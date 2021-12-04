@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: download
-        run: curl -s 'https://api.napari-hub.org/plugins' | jq 'keys' > plugins.json
+        run: curl -s 'https://api.napari-hub.org/plugins' | jq -c 'keys' > plugins.json
       - name: Save Plugin Names
         id: plugin_names
         run: echo "::set-output name=plugins::$(cat ./plugins.json)"
