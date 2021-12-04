@@ -12,9 +12,8 @@ if not PLUGIN:
 
 def plugin_entrypoints(package) -> Iterable[Tuple[str, str]]:
     for ep in metadata.distribution(package).entry_points:
-        if ep.group != "napari.plugin":
-            continue
-        yield (ep.name, ep.value)
+        if ep.group == "napari.plugin":
+            yield (ep.name, ep.value)
 
 
 def test_plugin_detected():
