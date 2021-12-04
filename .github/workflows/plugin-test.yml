@@ -12,9 +12,8 @@ jobs:
     steps:
       - id: plugin-names
         run: |
-          JSON=$(curl -s 'https://api.napari-hub.org/plugins' | jq 'keys')
-          echo $JSON
-          echo "::set-output name=matrix::$JSON"
+          curl -s 'https://api.napari-hub.org/plugins' | jq 'keys' > plugins.json
+          echo "::set-output name=matrix::$(cat plugins.json)"
 
   test:
     needs: get-plugins
