@@ -8,12 +8,12 @@ jobs:
   get-plugins:
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.plugin-names.outputs.matrix }}
+      plugins: ${{ steps.plugin-names.outputs.plugins }}
     steps:
+      - name: download
+        run: curl -s 'https://api.napari-hub.org/plugins' | jq 'keys' > plugins.json
       - id: plugin-names
-        run: |
-          curl -s 'https://api.napari-hub.org/plugins' | jq 'keys' > plugins.json
-          echo "::set-output name=matrix::$(cat plugins.json)"
+        run: echo "::set-output name=plugins::$(cat ./plugins.json)"
 
   test:
     needs: get-plugins
@@ -21,7 +21,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        plugin: ${{ fromJson(needs.get-plugins.outputs.matrix) }}
+        plugin: ${{ fromJson(needs.get-plugins.outputs.plugins) }}
         python-version: [3.7, 3.8, 3.9]
 
     steps:
