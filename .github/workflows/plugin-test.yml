@@ -41,22 +41,22 @@ jobs:
           pip install -U pip
           pip install napari PyQt5 pytest
 
-      - name: Install plugin
+      - name: Install ${{ matrix.plugin }}
         run: |
           pip install ${{ matrix.plugin }}
           pip uninstall -y PySide2  # just in case
 
-      - name: Test plugin
+      - name: Test plugin on PyQt5
         run: pytest .github/workflows/test_plugin.py
         env:
-          PLUGIN: ${{ matrix.plugin }}
+          NAPARI_PLUGIN: ${{ matrix.plugin }}
 
       - name: Switch backend
         run: |
           pip uninstall -y PyQt5
           pip install PySide2
 
-      - name: Test plugin
+      - name: Test plugin on PySide2
         run: pytest .github/workflows/test_plugin.py
         env:
-          PLUGIN: ${{ matrix.plugin }}
+          NAPARI_PLUGIN: ${{ matrix.plugin }}
