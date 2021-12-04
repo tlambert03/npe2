@@ -34,10 +34,12 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -U pip
-          pip install napari PyQt5
+          pip install napari PyQt5 pytest
 
       - name: Install plugin
-        run: pip install ${{ matrix.plugin }}
+        run: |
+          pip install ${{ matrix.plugin }}
+          pip uninstall -y PySide2  # just in case
 
       - name: Test plugin
         run: pytest .github/workflows/test_plugin.py
