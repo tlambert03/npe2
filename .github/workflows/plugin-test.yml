@@ -15,12 +15,13 @@ jobs:
 
   test:
     needs: get-plugins
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.platform }}
     strategy:
       fail-fast: false
       matrix:
         plugin: ${{ fromJson(needs.get-plugins.outputs.plugins) }}
         python-version: [3.9]
+        platform: [macos-latest, windows-latest]
 
     steps:
       # checkout repo
