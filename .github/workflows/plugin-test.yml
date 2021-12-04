@@ -1,7 +1,7 @@
 name: Test Plugins
 
 on:
-  pull_request: {}
+  pull_request:
   workflow_dispatch:
 
 jobs:
@@ -38,24 +38,22 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -U pip
-          pip install napari PyQt5 pytest
+          pip install napari PySide2 pytest
 
       - name: Install ${{ matrix.plugin }}
-        run: |
-          pip install ${{ matrix.plugin }}
-          pip uninstall -y PySide2  # just in case
+        run: pip install ${{ matrix.plugin }}
 
-      - name: Test plugin on PyQt5
+      - name: Test plugin on PySide2
         run: pytest .github/workflows/test_plugin.py
         env:
           NAPARI_PLUGIN: ${{ matrix.plugin }}
 
       - name: Switch backend
         run: |
-          pip uninstall -y PyQt5
-          pip install PySide2
+          pip uninstall -y PySide2 shiboken2
+          pip install PyQt5
 
-      - name: Test plugin on PySide2
+      - name: Test plugin on PyQt5
         run: pytest .github/workflows/test_plugin.py
         env:
           NAPARI_PLUGIN: ${{ matrix.plugin }}
