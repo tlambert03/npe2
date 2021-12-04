@@ -62,7 +62,7 @@ def test_plugin_detected(plugin_manager: PM):
         assert mod in mods
 
 
-def test_dock_widgets(qtbot, make_napari_viewer, plugin_manager: PM, monkeypatch):
+def test_dock_widgets(plugin_manager: PM):
     """Test that dock widgets can be created"""
 
     # weird, but safe way to get the plugin name
@@ -87,12 +87,12 @@ def test_dock_widgets(qtbot, make_napari_viewer, plugin_manager: PM, monkeypatch
 
 def test_single_backend_installed():
     try:
-        pass
+        import PySide2  # noqa
     except ImportError:
         assert __import__("PyQt5"), "No backend installed?"
     else:
         try:
-            pass
+            import PyQt5  # noqa
         except ImportError:
             pass
         else:
