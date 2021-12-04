@@ -11,7 +11,7 @@ jobs:
       matrix: ${{ steps.plugin-names.outputs.matrix }}
     steps:
       - id: plugin-names
-        run: echo "::set-output name=matrix::$(curl -X GET 'https://api.napari-hub.org/plugins' | jq 'keys')"
+        run: echo "::set-output name=matrix::$(curl -s 'https://api.napari-hub.org/plugins' | jq 'keys')"
 
   test:
     needs: get-plugins
