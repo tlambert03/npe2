@@ -8,11 +8,8 @@ jobs:
   get-plugins:
     runs-on: ubuntu-latest
     steps:
-      - name: download
-        run: curl -s 'https://api.napari-hub.org/plugins' | jq -c 'keys' > plugins.json
-      - name: Save Plugin Names
-        id: plugin_names
-        run: echo "::set-output name=plugins::$(cat ./plugins.json)"
+      - id: plugin_names
+        run: echo "::set-output name=plugins::$(curl -s https://api.napari-hub.org/plugins | jq -c 'keys')"
     outputs:
       plugins: ${{ steps.plugin_names.outputs.plugins }}
 
@@ -23,7 +20,7 @@ jobs:
       fail-fast: false
       matrix:
         plugin: ${{ fromJson(needs.get-plugins.outputs.plugins) }}
-        python-version: [3.7, 3.8, 3.9]
+        python-version: [3.9]
 
     steps:
       # checkout repo
