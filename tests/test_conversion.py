@@ -1,6 +1,5 @@
 import pytest
 
-from npe2 import _from_npe1
 from npe2._from_npe1 import convert_repository, get_top_module_path, manifest_from_npe1
 
 try:
@@ -123,13 +122,3 @@ def test_convert_repo():
 
 def test_get_top_module_path(mock_npe1_pm_with_plugin):
     get_top_module_path("npe1-plugin")
-
-
-def test_python_name_local():
-    def f():
-        return lambda x: None
-
-    with pytest.raises(ValueError) as e:
-        _from_npe1._python_name(f())
-
-    assert "functions defined in local scopes are not yet supported" in str(e.value)
