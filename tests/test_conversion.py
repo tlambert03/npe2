@@ -1,5 +1,6 @@
 import pytest
 
+from npe2 import _from_npe1
 from npe2._from_npe1 import convert_repository, get_top_module_path, manifest_from_npe1
 
 try:
@@ -9,12 +10,13 @@ except ImportError:
 
 
 @pytest.mark.filterwarnings("ignore:The distutils package is deprecated")
-@pytest.mark.filterwarnings("ignore:Found a multi-layer writer, but it's not")
+@pytest.mark.filterwarnings("ignore:Found a multi-layer writer in")
 @pytest.mark.parametrize("package", ["svg"])
 def test_conversion(package):
     assert manifest_from_npe1(package)
 
 
+@pytest.mark.filterwarnings("ignore:Failed to convert napari_provide_sample_data")
 def test_conversion_from_module(mock_npe1_pm, npe1_plugin_module):
     mf = manifest_from_npe1(module=npe1_plugin_module)
     assert isinstance(mf.dict(), dict)
@@ -39,6 +41,7 @@ def test_conversion_from_obj_with_locals(mock_npe1_pm):
     assert isinstance(mf.dict(), dict)
 
 
+@pytest.mark.filterwarnings("ignore:Failed to convert napari_provide_sample_data")
 def test_conversion_from_package(npe1_repo, mock_npe1_pm_with_plugin):
     setup_cfg = npe1_repo / "setup.cfg"
     before = setup_cfg.read_text()
@@ -73,9 +76,13 @@ setup(
     )
     with pytest.warns(UserWarning) as record:
         convert_repository(npe1_repo)
-    msg = record[0].message
-    assert "Cannot auto-update setup.py, please edit setup.py as follows" in str(msg)
-    assert "npe1-plugin = npe1_module:napari.yaml" in str(msg)
+
+    msg = str(record[0].message)
+    assert "Failed to convert napari_provide_sample_data in 'npe1-plugin'" in msg
+    assert "could not get resolvable python name" in msg
+    msg = str(record[1].message)
+    assert "Cannot auto-update setup.py, please edit setup.py as follows" in msg
+    assert "npe1-plugin = npe1_module:napari.yaml" in msg
 
 
 def test_conversion_entry_point_string(npe1_repo, mock_npe1_pm_with_plugin):
@@ -91,9 +98,13 @@ setup(
     )
     with pytest.warns(UserWarning) as record:
         convert_repository(npe1_repo)
-    msg = record[0].message
-    assert "Cannot auto-update setup.py, please edit setup.py as follows" in str(msg)
-    assert "npe1-plugin = npe1_module:napari.yaml" in str(msg)
+
+    msg = str(record[0].message)
+    assert "Failed to convert napari_provide_sample_data in 'npe1-plugin'" in msg
+    assert "could not get resolvable python name" in msg
+    msg = str(record[1].message)
+    assert "Cannot auto-update setup.py, please edit setup.py as follows" in msg
+    assert "npe1-plugin = npe1_module:napari.yaml" in msg
 
 
 def test_conversion_missing():
@@ -112,3 +123,13 @@ def test_convert_repo():
 
 def test_get_top_module_path(mock_npe1_pm_with_plugin):
     get_top_module_path("npe1-plugin")
+
+
+def test_python_name_local():
+    def f():
+        return lambda x: None
+
+    with pytest.raises(ValueError) as e:
+        _from_npe1._python_name(f())
+
+    assert "functions defined in local scopes are not yet supported" in str(e.value)

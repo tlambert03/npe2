@@ -193,7 +193,9 @@ class HookImplParser:
                 try:
                     getattr(self, impl.specname)(impl)
                 except Exception as e:  # pragma: no cover
-                    warnings.warn(f"Failed to convert {impl.specname}: {e}")
+                    warnings.warn(
+                        f"Failed to convert {impl.specname} in {self.package!r}: {e}"
+                    )
 
     def napari_experimental_provide_theme(self, impl: HookImplementation):
         ThemeDict = Dict[str, Union[str, Tuple, List]]
@@ -349,8 +351,8 @@ class HookImplParser:
 
     def napari_get_writer(self, impl: HookImplementation):
         warnings.warn(
-            "Found a multi-layer writer, but it's not convertable. "
-            "Please add the writer manually."
+            f"Found a multi-layer writer in {self.package!r} - {impl.specname!r}, "
+            "but it's not convertable. Please add the writer manually."
         )
         return NotImplemented  # pragma: no cover
 
