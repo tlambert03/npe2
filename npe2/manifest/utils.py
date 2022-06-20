@@ -9,6 +9,7 @@ import warnings
 from contextlib import contextmanager
 from dataclasses import dataclass
 from functools import lru_cache, total_ordering
+from importlib.metadata import PackageNotFoundError
 from io import BytesIO
 from logging import getLogger
 from pathlib import Path
@@ -28,6 +29,7 @@ from typing import (
     TypeVar,
     Union,
 )
+from urllib.error import HTTPError
 from urllib.request import urlopen
 from zipfile import ZipFile
 
@@ -358,9 +360,11 @@ def get_pypi_url(
         raise ValueError(
             f"Invalid packagetype: {packagetype}, must be one of sdist, bdist_wheel"
         )
-
-    with urlopen(f"https://pypi.org/pypi/{name}/json") as f:
-        data = json.load(f)
+    try:
+        with urlopen(f"https://pypi.org/pypi/{name}/json") as f:
+            data = json.load(f)
+    except HTTPError as e:
+        raise PackageNotFoundError(f"No package named {name!r} on pypi.") from e
 
     if version:
         version = version.lstrip("v")
@@ -492,11 +496,30 @@ def _try_load_contributions(mf):
             )
             mf._load_contributions(save=False)
             return True
-    except Exception:
-        return False
+    except Exception as e:
+        return e
 
 
 def fetch_npe1_manifest(package: str, version: Optional[str] = None) -> PluginManifest:
+    """Fetch manifest for npe1 plugin by installing into a temporary venv.
+
+    Parameters
+    ----------
+    package : str
+        package name
+    version : Optional[str]
+        package version, by default latest
+
+    Returns
+    -------
+    PluginManifest
+        Shim manifest for package.
+
+    Raises
+    ------
+    ValueError
+        If contributions cannot be loaded
+    """
     from npe2.manifest.schema import PluginManifest
 
     # create an isolated env in which to install npe1 plugin
@@ -506,22 +529,21 @@ def fetch_npe1_manifest(package: str, version: Optional[str] = None) -> PluginMa
 
         # temporarily add env site packages to path
         prefixes = [getattr(env, "path")]  # noqa
-        if not (site_pkgs := site.getsitepackages(prefixes=prefixes)):
-            raise ValueError("No site-packages found")
-        sys.path.insert(0, site_pkgs[0])
+        sys.path.insert(0, site.getsitepackages(prefixes=prefixes)[0])
 
         try:
             mf = PluginManifest.from_distribution(package)
 
-            if not _try_load_contributions(mf):
+            if _try_load_contributions(mf) is not True:
                 # if loading contributions fails, it can very often be fixed
                 # by installing `napari[all]` into the environment
                 env.install(["napari[all]"])
+
                 # force reloading of some modules
                 sys.modules.pop("qtpy", None)
-                if not _try_load_contributions(mf):
-                    raise ValueError(
-                        f"Unable to load contributions for npe1 plugin {package}"
+                if (e := _try_load_contributions(mf)) is not True:
+                    raise ImportError(
+                        f"Unable to load contributions for npe1 plugin {package}: {e}"
                     )
             return mf
         finally:
