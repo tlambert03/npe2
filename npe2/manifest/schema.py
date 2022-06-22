@@ -147,18 +147,22 @@ class PluginManifest(ImportExportModel):
 
     @property
     def license(self) -> Optional[str]:
+        """Package license."""
         return self.package_metadata.license if self.package_metadata else None
 
     @property
     def package_version(self) -> Optional[str]:
+        """Package version."""
         return self.package_metadata.version if self.package_metadata else None
 
     @property
     def description(self) -> Optional[str]:
+        """Package description."""
         return self.package_metadata.summary if self.package_metadata else None
 
     @property
     def author(self) -> Optional[str]:
+        """Package author."""
         return self.package_metadata.author if self.package_metadata else None
 
     @validator("contributions", pre=True)
@@ -204,7 +208,7 @@ class PluginManifest(ImportExportModel):
 
     @classmethod
     def from_distribution(cls, name: str) -> PluginManifest:
-        """Return PluginManifest given a distribution (package) name.
+        """Return `PluginManifest` given a distribution (package) name.
 
         Parameters
         ----------

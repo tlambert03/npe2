@@ -1,0 +1,79 @@
+site_name: npe2
+site_url: https://github.com/napari/npe2
+site_author: Talley Lambert
+site_description: >-
+  Pure python callback/event system modeled after Qt Signals
+
+# Repository
+repo_name: napari/npe2
+repo_url: https://github.com/napari/npe2
+
+
+extra_css:
+  - stylesheets/extra.css
+
+theme:
+  icon:
+    logo: material/power-plug
+  name: material
+  palette:
+    - scheme: default
+      primary: light blue
+      accent: light blue
+      toggle:
+        icon: material/toggle-switch
+        name: Switch to dark mode
+    - scheme: slate
+      primary: blue grey
+      accent: blue grey
+      toggle:
+        icon: material/toggle-switch-off-outline
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - search.highlight
+    - search.suggest
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+
+watch:
+  - npe2
+
+plugins:
+  - search
+  - autorefs
+  - minify:
+      minify_html: true
+  - mkdocstrings:
+      handlers:
+        python:
+          import:
+            - https://docs.python.org/3/objects.inv
+            - https://napari.org/objects.inv
+          selection:
+            docstring_style: numpy
+            # filters: ["!^_"]
+          rendering:
+            show_root_heading: true
+            # show_root_toc_entry: true
+            show_root_full_path: true
+            # show_object_full_path: false
+            # show_root_members_full_path: false
+            # show_category_heading: false
+            # show_if_no_docstring: false
+            # show_signature: true
+            # show_signature_annotations: false
+            show_source: true
+            # show_bases: true
+            # group_by_category: true
+            # heading_level: 2
+            members_order: alphabetical  # alphabetical/source
+
+            ## experimental
+            # separate_signature: false
+            # line_length: 60
+            # show_submodules: true
+            docstring_section_style: list  # or table/list/spacy
