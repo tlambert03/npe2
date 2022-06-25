@@ -85,8 +85,8 @@ def _pprint_table(
     console.print(table)
 
 
-@app.command()
-def validate(
+@app.command(name="validate")
+def _validate(
     name: str,
     imports: bool = typer.Option(
         False,
@@ -131,8 +131,8 @@ def _check_output(output: Path) -> Format:
     return Format(output.suffix.lstrip("."))
 
 
-@app.command()
-def parse(
+@app.command(name="parse")
+def _parse(
     name: str = typer.Argument(
         ..., help="Name of an installed package, or path to a manifest file."
     ),
@@ -156,7 +156,7 @@ def parse(
     ),
 ):
     """Show parsed manifest as yaml."""
-    fmt = _check_output(output) if output else format
+    fmt = _check_output(output) if output else Format(format)
     pm = PluginManifest._from_package_or_name(name)
     manifest_string = getattr(pm, fmt.value)(indent=indent)
     if output:
@@ -199,8 +199,8 @@ def _make_rows(pm_dict: dict, normed_fields: Sequence[str]) -> Iterator[List]:
         yield row
 
 
-@app.command()
-def list(
+@app.command(name="list")
+def _list(
     fields: str = typer.Option(
         "name,version,npe2,contributions",
         help="Comma seperated list of fields to include in the output."
@@ -218,7 +218,7 @@ def list(
         metavar="KEY",
     ),
     format: ListFormat = typer.Option(
-        "table",
+        ListFormat.table,
         "-f",
         "--format",
         help="Out format to use. When using 'compact', `--fields` is ignored ",
@@ -287,8 +287,8 @@ def list(
             typer.echo(template.format(**r, ncontrib=ncontrib))
 
 
-@app.command()
-def fetch(
+@app.command(name="fetch")
+def _fetch(
     name: str,
     version: Optional[str] = None,
     include_package_meta: Optional[bool] = typer.Option(
@@ -323,7 +323,7 @@ def fetch(
     """
     from npe2._fetch import fetch_manifest
 
-    fmt = _check_output(output) if output else format
+    fmt = _check_output(output) if output else Format(format)
     kwargs: dict = {"indent": indent}
     if include_package_meta:
         kwargs["exclude"] = set()
@@ -332,13 +332,13 @@ def fetch(
     manifest_string = getattr(mf, fmt.value)(**kwargs)
 
     if output:
-        output.write_text(manifest_string)
+        Path(output).write_text(manifest_string)
     else:
         _pprint_formatted(manifest_string, fmt)
 
 
-@app.command()
-def convert(
+@app.command(name="convert")
+def _convert(
     path: Path = typer.Argument(
         ...,
         help="Path of a local repository to convert (package must also be installed in"
@@ -356,6 +356,7 @@ def convert(
     """Convert first generation napari plugin to new (manifest) format."""
     from ._from_npe1 import convert_repository, manifest_from_npe1
 
+    path = Path(path)
     try:
         with warnings.catch_warnings(record=True) as w:
             if path.is_dir():
@@ -398,8 +399,8 @@ def convert(
         )
 
 
-@app.command()
-def cache(
+@app.command(name="cache")
+def _cache(
     clear: Optional[bool] = typer.Option(
         False, "--clear", "-d", help="Clear the npe1 adapter manifest cache"
     ),
@@ -449,7 +450,7 @@ def main():
     app()
 
 
-def detypered(typer_command: "Callable[P, R]") -> "Callable[P, R]":
+def _detypered(typer_command: "Callable[P, R]") -> "Callable[P, R]":
     """Set param defaults to typer.Option and typer.Argument defaults.
 
     This is a small hack to allow any of the typer commands here to be executed
@@ -473,3 +474,11 @@ def detypered(typer_command: "Callable[P, R]") -> "Callable[P, R]":
 
     wrapped.__signature__ = new_sig  # type: ignore
     return wrapped
+
+
+validate = _detypered(_validate)
+convert = _detypered(_convert)
+list = _detypered(_list)  # sourcery skip: avoid-builtin-shadow
+fetch = _detypered(_fetch)
+parse = _detypered(_parse)
+cache = _detypered(_cache)
