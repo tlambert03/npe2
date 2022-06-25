@@ -9,7 +9,13 @@ import typer
 from npe2 import PluginManager, PluginManifest
 
 if TYPE_CHECKING:
+    from typing import Callable, TypeVar
+
     from rich.console import RenderableType
+    from typing_extensions import ParamSpec
+
+    P = ParamSpec("P")
+    R = TypeVar("R")
 
 app = typer.Typer()
 
@@ -441,3 +447,29 @@ def cache(
 
 def main():
     app()
+
+
+def detypered(typer_command: "Callable[P, R]") -> "Callable[P, R]":
+    """Set param defaults to typer.Option and typer.Argument defaults.
+
+    This is a small hack to allow any of the typer commands here to be executed
+    directly with their default values intact.
+    """
+    from functools import wraps
+    from inspect import signature
+
+    sig = signature(typer_command)
+    fixed_defaults = [
+        p.replace(default=getattr(p.default, "default", p.default))
+        for p in sig.parameters.values()
+    ]
+    new_sig = sig.replace(parameters=fixed_defaults)
+
+    @wraps(typer_command)
+    def wrapped(*args: "P.args", **kwargs: "P.kwargs") -> "R":
+        bound = new_sig.bind(*args, **kwargs)
+        bound.apply_defaults()
+        return typer_command(*bound.args, **bound.kwargs)
+
+    wrapped.__signature__ = new_sig  # type: ignore
+    return wrapped
