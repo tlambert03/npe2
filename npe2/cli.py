@@ -17,7 +17,28 @@ if TYPE_CHECKING:
     P = ParamSpec("P")
     R = TypeVar("R")
 
-app = typer.Typer()
+app = typer.Typer(no_args_is_help=True)
+
+
+def _print_version(value: bool):
+    from npe2 import __version__
+
+    if value:
+        typer.echo(f"npe2 v{__version__}")
+        raise typer.Exit()
+
+
+@app.callback(invoke_without_command=True)
+def _no_command(
+    version: Optional[bool] = typer.Option(
+        None,
+        "--version",
+        callback=_print_version,
+        is_eager=True,
+        help="Print version and exit.",
+    ),
+):
+    ...
 
 
 class Format(str, Enum):
