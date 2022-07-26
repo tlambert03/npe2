@@ -291,6 +291,6 @@ def _fetch_all_manifests(dest="manifests"):
 
     args = [(name, ver, dest) for name, ver in sorted(get_hub_plugins().items())]
     with ThreadPoolExecutor() as executor:
-        errors = list(executor.map(_try_fetch_and_write_manifest, args))
+        errors = list(executor.map(_try_fetch_and_write_manifest, args[:30]))
     _errors = {tup[0]: tup[1] for tup in errors if tup}
     (dest / "errors.json").write_text(json.dumps(_errors, indent=2))
