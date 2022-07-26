@@ -10,7 +10,8 @@ jobs:
   fetch:
     name: Fetch
     runs-on: ubuntu-latest
-
+    env:
+      DISPLAY: ':99.0'
     steps:
       - uses: actions/checkout@v3
         with:
@@ -24,10 +25,15 @@ jobs:
 
       - name: fetch
         run: |
-          sudo apt-get install -y xvfb
           pip install -U pip
-          pip install -e .
-          xvfb-run --auto-servernum npe2 fetch --all
+          pip install .
+          rm -rf ./*
+          rm -rf ./.*
+          sudo apt-get install -y xvfb
+          /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid \
+              --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -screen 0 \
+              1920x1200x24 -ac +extension GLX
+          npe2 fetch --all
 
       - uses: stefanzweifel/git-auto-commit-action@v4
         with:
