@@ -196,7 +196,7 @@ def isolated_plugin_env(
         # install the package
         pkg = f"{package}=={version}" if version else package
         logger.debug(f"installing {pkg} into virtual env")
-        env.install([pkg])
+        env.install([pkg, "napari[all]"])
 
         # temporarily add env site packages to path
         prefixes = [getattr(env, "path")]  # noqa
