@@ -10,28 +10,20 @@ on:
 jobs:
   fetch:
     name: Fetch
-    runs-on: ubuntu-latest
-    env:
-      DISPLAY: ':99.0'
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v3
         with:
           ref: ${{ github.head_ref }}
 
-      - uses: tlambert03/setup-qt-libs@v1
-
       - uses: actions/setup-python@v4
         with:
-          python-version: "3.x"
+          python-version: "3.9"
 
       - name: fetch
         run: |
           pip install -U pip
           pip install .
-          sudo apt-get install -y xvfb
-          /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid \
-              --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -screen 0 \
-              1920x1200x24 -ac +extension GLX
           npe2 fetch --all
 
       - uses: stefanzweifel/git-auto-commit-action@v4
