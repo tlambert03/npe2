@@ -1,0 +1,30 @@
+{
+  "Offset-Subtraction": {
+    "version": "0.0.5",
+    "error": "Offset-Subtraction"
+  },
+  "PartSeg": {
+    "version": "0.14.2",
+    "error": "Error importing contributions for first-generation napari plugin 'PartSeg': No module named 'napari.plugins'"
+  },
+  "PlatyMatch": {
+    "version": "0.0.3",
+    "error": "Error importing contributions for first-generation napari plugin 'PlatyMatch': No module named 'skimage.filters'"
+  },
+  "beetlesafari": {
+    "version": "0.4.0",
+    "error": "Error importing contributions for first-generation napari plugin 'beetlesafari': No module named 'skimage.transform'"
+  },
+  "brainreg-segment": {
+    "version": "0.2.16",
+    "error": "Error importing contributions for first-generation napari plugin 'brainreg-segment': No module named 'napari.qt'"
+  },
+  "devbio-napari": {
+    "version": "0.5.9",
+    "error": "Error importing contributions for first-generation napari plugin 'devbio-napari': No module named 'napari._qt'"
+  },
+  "elastix-napari": {
+    "version": "0.1.7",
+    "error": "Error importing contributions for first-generation napari plugin 'elastix-napari': No module named 'PyQt5.QtWidgets'"
+  }
+}
