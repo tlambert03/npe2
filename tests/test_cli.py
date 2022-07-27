@@ -1,8 +1,10 @@
 import sys
+from unittest.mock import patch
 
 import pytest
 from typer.testing import CliRunner
 
+from npe2 import __version__
 from npe2.cli import app, main
 from npe2.manifest.schema import PluginManifest
 
@@ -91,6 +93,24 @@ def test_cli_fetch(format, tmp_path, to_file, include_meta):
             assert "package_metadata" in result.stdout
 
 
+def test_cli_fetch_all(tmp_path):
+    import os
+
+    before = os.getcwd()
+    try:
+        os.chdir(tmp_path)
+        with patch("npe2._fetch.fetch_manifest") as mock_fetch:
+            with patch("npe2._fetch.get_hub_plugins") as mock_hub:
+                mock_hub.return_value = {"a": "0.1.0", "b": "0.2.0", "c": "0.3.0"}
+                result = runner.invoke(app, ["fetch", "--all"])
+
+        assert result.exit_code == 0
+        mock_fetch.assert_called_with("c", version="0.3.0")
+        assert (tmp_path / "manifests").exists()
+    finally:
+        os.chdir(before)
+
+
 @pytest.mark.filterwarnings("default:Failed to convert")
 def test_cli_convert_repo(npe1_repo, mock_npe1_pm_with_plugin):
     result = runner.invoke(app, ["convert", str(npe1_repo)])
@@ -136,7 +156,7 @@ def test_cli_main(monkeypatch, sample_path):
     assert e.value.code == 0
 
 
-def test_cli_cache_list_empty(mock_cache):
+def test_cli_cache_list_empty():
     result = runner.invoke(app, ["cache", "--list"])
     assert "Nothing cached" in result.stdout
     assert result.exit_code == 0
@@ -156,7 +176,7 @@ def test_cli_cache_list_named(uses_npe1_plugin, mock_cache):
     assert result.exit_code == 0
 
 
-def test_cli_cache_clear_empty(mock_cache):
+def test_cli_cache_clear_empty():
     result = runner.invoke(app, ["cache", "--clear"])
     assert "Nothing to clear" in result.stdout
     assert result.exit_code == 0
@@ -175,3 +195,34 @@ def test_cli_cache_clear_named(mock_cache):
     result = runner.invoke(app, ["cache", "--clear", "not-a-plugin"])
     assert result.stdout == "Nothing to clear for plugins: not-a-plugin\n"
     assert result.exit_code == 0
+
+
+@pytest.mark.parametrize("format", ["table", "compact", "yaml", "json"])
+@pytest.mark.parametrize("fields", [None, "name,version,author"])
+def test_cli_list(format, fields, uses_npe1_plugin):
+    result = runner.invoke(app, ["list", "-f", format, "--fields", fields])
+    assert result.exit_code == 0
+    assert "npe1-plugin" in result.output
+    if fields and "author" in fields and format != "compact":
+        assert "author" in result.output.lower()
+    else:
+        assert "author" not in result.output.lower()
+
+
+def test_cli_list_sort(uses_npe1_plugin):
+    result = runner.invoke(app, ["list", "--sort", "version"])
+    assert result.exit_code == 0
+
+    result = runner.invoke(app, ["list", "--sort", "7"])
+    assert result.exit_code
+    assert "Invalid sort value '7'" in result.output
+
+    result = runner.invoke(app, ["list", "--sort", "notaname"])
+    assert result.exit_code
+    assert "Invalid sort value 'notaname'" in result.output
+
+
+def test_cli_version():
+    result = runner.invoke(app, ["--version"])
+    assert result.exit_code == 0
+    assert __version__ in result.output
