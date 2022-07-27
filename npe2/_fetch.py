@@ -284,13 +284,13 @@ def _try_fetch_and_write_manifest(args: Tuple[str, str, Path]):
 
 
 def _fetch_all_manifests(dest="manifests"):
-    from concurrent.futures import ThreadPoolExecutor
+    from concurrent.futures import ProcessPoolExecutor
 
     dest = Path(dest)
     dest.mkdir(exist_ok=True)
 
     args = [(name, ver, dest) for name, ver in sorted(get_hub_plugins().items())]
-    with ThreadPoolExecutor() as executor:
-        errors = list(executor.map(_try_fetch_and_write_manifest, args[:28]))
+    with ProcessPoolExecutor() as executor:
+        errors = list(executor.map(_try_fetch_and_write_manifest, args[28]))
     _errors = {tup[0]: tup[1] for tup in errors if tup}
     (dest / "errors.json").write_text(json.dumps(_errors, indent=2))
