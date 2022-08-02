@@ -76,17 +76,17 @@ class ConfigurationProperty(Draft07JsonSchema):
         "settings UI unless it is configured by the user.",
     )
 
-    scope: Literal["application"] = Field(
-        "application",
-        description="A configuration setting can have one of the following scopes:\n"
-        "  - `application`: Applies globally, can only be configured in user settings",
-        # TODO: add support for these additional scopes
-        # "  - `machine`: Machine specific settings that can be set only in user "
-        # "settings or only in remote settings. For example, an installation path which"
-        # " shouldn't be shared across machines.\n"
-        # "  - `window`: Viewer (instance) specific settings which can be configured"
-        # "in user or workspace settings.",  # this should be the default
-    )
+    # scope: Literal["application"] = Field(
+    #     "application",
+    #     description="A configuration setting can have one of the following scopes:\n"
+    #     "  - `application`: Applies globally, can only be configured in user settings",
+    #     # TODO: add support for these additional scopes
+    #     # "  - `machine`: Machine specific settings that can be set only in user "
+    #     # "settings or only in remote settings. For example, an installation path which"
+    #     # " shouldn't be shared across machines.\n"
+    #     # "  - `window`: Viewer (instance) specific settings which can be configured"
+    #     # "in user or workspace settings.",  # this should be the default
+    # )
     edit_presentation: Literal["singleline", "multiline"] = Field(
         "singleline",
         description="A string setting can be rendered with a multiline text input if "
