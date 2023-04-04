@@ -276,6 +276,7 @@ class PluginManager:
             Number of discovered plugins
 
         """
+        breakpoint()
         if clear:
             self._contrib = _ContributionsIndex()
             self._manifests.clear()

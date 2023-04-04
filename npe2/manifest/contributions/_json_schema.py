@@ -13,6 +13,7 @@ else:
         from jsonschema.protocols import Validator
     except ImportError:
         ValidationError = Exception
+        Validator = Any
 
 __all__ = [
     "ValidationError",

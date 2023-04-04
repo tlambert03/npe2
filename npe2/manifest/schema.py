@@ -491,6 +491,7 @@ class PluginManifest(ImportExportModel):
 
 
 def _noop(*_, **__):
+    breakpoint()
     return []  # pragma: no cover
 
 

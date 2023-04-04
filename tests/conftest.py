@@ -34,6 +34,8 @@ def uses_sample_plugin(sample_path):
     try:
         pm = PluginManager.instance()
         pm.discover()
+        breakpoint()
+        assert "my-plugin" in pm._manifests
         yield
     finally:
         sys.path.remove(str(sample_path))
