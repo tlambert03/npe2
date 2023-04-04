@@ -265,7 +265,7 @@ class ContributionDecorator(Generic[C]):
         cmd_kwargs = {
             k: kwargs.pop(k)
             for k in list(kwargs)
-            if k in CommandContribution.__fields__
+            if k in dict(iter_fields(CommandContribution))  # make field_names()
         }
         cmd = CommandContribution(**cmd_kwargs)
         self.commands.append(cmd)

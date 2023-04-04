@@ -7,6 +7,8 @@ import pytomlpp as toml
 import yaml
 from pydantic import BaseModel, PrivateAttr
 
+from npe2._pydantic_compat import iter_fields
+
 
 class ImportExportModel(BaseModel):
     """Model mixin/base class that provides read/write from toml/yaml/json.
@@ -98,8 +100,10 @@ class ImportExportModel(BaseModel):
 
     @contextmanager
     def _required_export_fields_set(self):
-        fields = self.__fields__.items()
-        required = {k for k, v in fields if v.field_info.extra.get("always_export")}
+        iter_fields(self)
+        # required = {k for k, v in fields if v.field_info.extra.get("always_export")}
+        # TODO
+        required = {}
 
         was_there: Dict[str, bool] = {}
         for f in required:

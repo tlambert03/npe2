@@ -30,12 +30,12 @@ __all__ = [
 
 
 class ContributionPoints(BaseModel):
-    commands: Optional[List[CommandContribution]]
-    readers: Optional[List[ReaderContribution]]
-    writers: Optional[List[WriterContribution]]
-    widgets: Optional[List[WidgetContribution]]
-    sample_data: Optional[List[SampleDataContribution]]
-    themes: Optional[List[ThemeContribution]]
+    commands: Optional[List[CommandContribution]] = None
+    readers: Optional[List[ReaderContribution]] = None
+    writers: Optional[List[WriterContribution]] = None
+    widgets: Optional[List[WidgetContribution]] = None
+    sample_data: Optional[List[SampleDataContribution]] = None
+    themes: Optional[List[ThemeContribution]] = None
     menus: Dict[str, List[MenuItem]] = Field(
         default_factory=dict,
         # hide_docs=True,

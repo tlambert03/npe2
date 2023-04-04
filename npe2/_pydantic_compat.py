@@ -62,7 +62,9 @@ class FieldInfo(NamedTuple):
 if PYDANTIC_V2:
     FROZEN = {"frozen": True}
 
-    def iter_fields(cls: pydantic.BaseModel) -> Iterable[tuple[str, FieldInfo]]:
+    def iter_fields(
+        cls: pydantic.BaseModel | type[pydantic.BaseModel],
+    ) -> Iterable[tuple[str, FieldInfo]]:
         for name, field_info in cls.model_fields.items():
             _field_info = FieldInfo(
                 annotation=field_info.annotation,
@@ -98,7 +100,9 @@ else:
     def list_like(v: Any) -> bool:
         return isinstance(v, (list, tuple, set, frozenset))
 
-    def iter_fields(cls: pydantic.BaseModel) -> Iterable[tuple[str, FieldInfo]]:
+    def iter_fields(
+        cls: pydantic.BaseModel | type[pydantic.BaseModel],
+    ) -> Iterable[tuple[str, FieldInfo]]:
         for name, model_field in cls.__fields__.items():
             field_info = model_field.field_info
             _field_info = FieldInfo(
