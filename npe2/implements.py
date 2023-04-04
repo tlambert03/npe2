@@ -4,6 +4,8 @@ from typing import Any, Callable, List, Sequence, Type, TypeVar
 
 from pydantic import BaseModel
 
+from npe2._pydantic_compat import iter_fields
+
 from .manifest import contributions
 
 __all__ = [
@@ -36,20 +38,20 @@ def _build_decorator(contrib: Type[BaseModel]) -> Callable:
     params: List[Parameter] = []
     for contrib in contribs:
         # iterate over the fields in the contribution types
-        for field in contrib.__fields__.values():
+        for field_name, field in iter_fields(contrib):
             # we don't need python_name (since that will be gleaned from the function
             # we're decorating) ... and we don't need `command`, since that will just
             # be a string pointing to the contributions.commands entry that we are
             # creating here.
-            if field.name not in {"python_name", "command"}:
+            if field_name not in {"python_name", "command"}:
                 # ensure that required fields raise a TypeError if they are not provided
                 default = Parameter.empty if field.required else field.get_default()
                 # create the parameter and add it to the signature.
                 param = Parameter(
-                    field.name,
+                    field_name,
                     Parameter.KEYWORD_ONLY,
                     default=default,
-                    annotation=field.outer_type_ or field.type_,
+                    annotation=field.annotation,
                 )
                 params.append(param)
 

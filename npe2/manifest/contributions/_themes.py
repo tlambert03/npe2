@@ -26,7 +26,7 @@ class ThemeColors(BaseModel):
     current: Optional[Color]
 
 
-_color_keys = ", ".join([f"`{k}`" for k in ThemeColors.__fields__])
+_color_keys = ", ".join([f"`{k}`" for k in ThemeColors.__annotations__])
 _color_args = """
     - name: `"Black"`, `"azure"`
     - hexadecimal value: `"0x000"`, `"#FFFFFF"`, `"7fffd4"`

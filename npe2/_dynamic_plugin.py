@@ -16,6 +16,8 @@ from typing import (
 
 from pydantic import BaseModel, ValidationError
 
+from npe2._pydantic_compat import iter_fields
+
 from ._plugin_manager import PluginManager
 from .manifest.contributions import (
     CommandContribution,
@@ -33,7 +35,7 @@ T = TypeVar("T", bound=Callable[..., Any])
 
 # a mapping of contribution type to string name in the ContributionPoints
 # e.g. {ReaderContribution: 'readers'}
-CONTRIB_NAMES = {v.type_: k for k, v in ContributionPoints.__fields__.items()}
+CONTRIB_NAMES = {v.annotation: k for k, v in iter_fields(ContributionPoints)}
 for key in list(CONTRIB_NAMES):
     if getattr(key, "__origin__", "") == Union:
         v = CONTRIB_NAMES.pop(key)

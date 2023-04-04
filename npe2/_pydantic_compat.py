@@ -4,6 +4,7 @@ from typing import AbstractSet, Any, Callable, Iterable, Mapping, NamedTuple
 
 import pydantic
 from pydantic import fields
+from pydantic.types import conlist as pydantic_conlist
 
 PYDANTIC_V2 = pydantic.__version__.startswith("2")
 
@@ -50,8 +51,16 @@ class FieldInfo(NamedTuple):
     kw_only: bool | None = None
     validate_default: bool | None = None
 
+    @property
+    def required(self) -> bool:
+        return self.default is Undefined and self.default_factory is None
+
+    def get_default(self) -> Any:
+        return self.default if self.default_factory is None else self.default_factory()
+
 
 if PYDANTIC_V2:
+    FROZEN = {"frozen": True}
 
     def iter_fields(cls: pydantic.BaseModel) -> Iterable[tuple[str, FieldInfo]]:
         for name, field_info in cls.model_fields.items():
@@ -73,13 +82,27 @@ if PYDANTIC_V2:
             )
             yield name, _field_info
 
+    def conlist(
+        item_type: type,
+        *,
+        min_items: int = None,
+        max_items: int = None,
+        unique_items: bool = None,  # !!!
+    ):
+        return pydantic_conlist(item_type, min_length=min_items, max_length=max_items)
+
 else:
+    FROZEN = {"allow_mutation": False}
+    conlist = pydantic_conlist
+
+    def list_like(v: Any) -> bool:
+        return isinstance(v, (list, tuple, set, frozenset))
 
     def iter_fields(cls: pydantic.BaseModel) -> Iterable[tuple[str, FieldInfo]]:
         for name, model_field in cls.__fields__.items():
             field_info = model_field.field_info
             _field_info = FieldInfo(
-                annotation=model_field.outer_type_,
+                annotation=model_field.outer_type_ or model_field.type_,
                 default=model_field.default,
                 default_factory=model_field.default_factory,
                 alias=model_field.alias,

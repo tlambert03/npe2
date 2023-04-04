@@ -9,7 +9,8 @@ from pathlib import Path
 from typing import Iterator, List, Literal, NamedTuple, Optional, Sequence, Union
 
 from pydantic import Extra, Field, ValidationError, root_validator, validator
-from pydantic.error_wrappers import ErrorWrapper
+
+# from pydantic.error_wrappers import ErrorWrapper
 from pydantic.main import BaseModel, ModelMetaclass
 
 from npe2.types import PythonName
@@ -78,9 +79,10 @@ class DiscoverResults(NamedTuple):
 
 class PluginManifest(ImportExportModel):
     class Config:
-        underscore_attrs_are_private = True
+        # underscore_attrs_are_private = True
         extra = Extra.ignore
         validate_assignment = True
+        # undefined_types_warning = False
 
     # VS Code uses <publisher>.<name> as a unique ID for the extension
     # should this just be the package name ... not the module name? (yes)
@@ -91,7 +93,7 @@ class PluginManifest(ImportExportModel):
         ...,
         description="The name of the plugin. Though this field is mandatory, it *must*"
         " match the package `name` as defined in the python package metadata.",
-        allow_mutation=False,
+        # **FROZEN,
     )
     _validate_name = validator("name", pre=True, allow_reuse=True)(
         _validators.package_name
@@ -153,7 +155,7 @@ class PluginManifest(ImportExportModel):
         SCHEMA_VERSION,
         description="A SemVer compatible version string matching the napari plugin "
         "schema version that the plugin is compatible with.",
-        always_export=True,
+        # always_export=True,
     )
 
     # TODO:
@@ -194,13 +196,13 @@ class PluginManifest(ImportExportModel):
         "https://packaging.python.org/specifications/core-metadata/. "
         "For normal (non-dynamic) plugins, this data will come from the package's "
         "setup.cfg",
-        hide_docs=True,
+        # hide_docs=True,
     )
 
     npe1_shim: bool = Field(
         False,
         description="Whether this manifest was created as a shim for an npe1 plugin.",
-        hide_docs=True,
+        # hide_docs=True,
     )
 
     def __init__(self, **data):
@@ -245,7 +247,7 @@ class PluginManifest(ImportExportModel):
     def _coerce_none_contributions(cls, value):
         return [] if value is None else value
 
-    @root_validator
+    @root_validator(skip_on_failure=True)
     def _validate_root(cls, values: dict) -> dict:
         mf_name = values.get("name")
 
@@ -477,8 +479,9 @@ class PluginManifest(ImportExportModel):
                 if field.outer_type_ is PythonName:
                     try:
                         import_python_name(value)
-                    except (ImportError, AttributeError) as e:
-                        errors.append(ErrorWrapper(e, (*loc, name)))
+                    except (ImportError, AttributeError):
+                        pass
+                        # errors.append(ErrorWrapper(e, (*loc, name)))
 
         check_pynames(self)
         if errors:

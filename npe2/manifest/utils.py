@@ -18,9 +18,9 @@ from typing import (
     Union,
 )
 
-from pydantic import PrivateAttr
-from pydantic.generics import GenericModel
+from pydantic import BaseModel, PrivateAttr
 
+# from pydantic.generics import GenericModel
 from npe2.types import PythonName
 
 if TYPE_CHECKING:
@@ -46,7 +46,7 @@ SHIM_NAME_PREFIX = "__npe1shim__."
 
 
 # TODO: add ParamSpec when it's supported better by mypy
-class Executable(GenericModel, Generic[R]):
+class Executable(BaseModel, Generic[R]):
     command: str
     # plugin_name gets populated in `PluginManifest.__init__`
     _plugin_name: str = PrivateAttr("")

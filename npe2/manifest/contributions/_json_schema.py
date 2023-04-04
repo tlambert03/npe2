@@ -1,8 +1,8 @@
-from __future__ import annotations
-
 from typing import TYPE_CHECKING, Any, Dict, List, Literal, Optional, Type, Union
 
-from pydantic import BaseModel, Field, PrivateAttr, conlist, root_validator, validator
+from pydantic import BaseModel, Field, PrivateAttr, root_validator, validator
+
+from npe2._pydantic_compat import conlist
 
 if TYPE_CHECKING:
     from jsonschema.exceptions import ValidationError
@@ -10,6 +10,7 @@ if TYPE_CHECKING:
 else:
     try:
         from jsonschema.exceptions import ValidationError
+        from jsonschema.protocols import Validator
     except ImportError:
         ValidationError = Exception
 
@@ -24,6 +25,8 @@ JsonType = Literal["array", "boolean", "integer", "null", "number", "object", "s
 JsonTypeArray = conlist(JsonType, min_items=True, unique_items=True)
 StringArrayMin1 = conlist(str, unique_items=True, min_items=1)
 StringArray = conlist(str, unique_items=True)
+AnyArr = conlist(Any, min_items=1, unique_items=True)
+
 
 PY_NAME_TO_JSON_NAME = {
     "list": "array",
@@ -84,7 +87,8 @@ _python_equivalent: Dict[Optional[str], Type] = {
 class _JsonSchemaBase(BaseModel):
     class Config:
         alias_generator = _to_camel
-        allow_population_by_field_name = True
+        # allow_population_by_field_name = True
+        populate_by_name = True
 
     # underscore here to avoid name collision with pydantic's `schema` method
     schema_: Optional[str] = Field(None, alias="$schema")
@@ -103,7 +107,7 @@ class _JsonSchemaBase(BaseModel):
     unique_items: bool = Field(False)
     max_properties: Optional[int] = Field(None, ge=0)
     min_properties: Optional[int] = Field(0, ge=0)
-    enum: Optional[conlist(Any, min_items=1, unique_items=True)] = Field(None)  # type: ignore  # noqa
+    enum: Optional[AnyArr] = Field(None)  # type: ignore
     type: Union[JsonType, JsonTypeArray] = Field(None)  # type: ignore
     format: Optional[str] = Field(None)
 
@@ -206,40 +210,38 @@ class Draft04JsonSchema(_JsonSchemaBase):
     exclusive_minimum: Optional[bool] = Field(None)
     required: Optional[StringArrayMin1] = Field(None)  # type: ignore
     dependencies: Optional[  # type: ignore
-        Dict[str, Union[Draft04JsonSchema, StringArrayMin1]]
+        Dict[str, Union["Draft04JsonSchema", StringArrayMin1]]
     ] = Field(None)
 
     # common to all schemas (could go in _JsonSchemaBase)
     # except we need the self-referrential type to be this class
-    additional_items: Union[bool, Draft04JsonSchema, None] = Field(None)
-    items: Union[Draft04JsonSchema, List[Draft04JsonSchema], None] = Field(None)
-    additional_properties: Union[bool, Draft04JsonSchema, None] = Field(None)
-    definitions: Optional[Dict[str, Draft04JsonSchema]] = Field(None)
-    properties: Optional[Dict[str, Draft04JsonSchema]] = Field(None)
-    pattern_properties: Optional[Dict[str, Draft04JsonSchema]] = Field(None)
-    all_of: Optional[List[Draft04JsonSchema]] = Field(None)
-    any_of: Optional[List[Draft04JsonSchema]] = Field(None)
-    one_of: Optional[List[Draft04JsonSchema]] = Field(None)
-    not_: Optional[Draft04JsonSchema] = Field(None, alias="not")
+    additional_items: Union[bool, "Draft04JsonSchema", None] = Field(None)
+    items: Union["Draft04JsonSchema", List["Draft04JsonSchema"], None] = Field(None)
+    additional_properties: Union[bool, "Draft04JsonSchema", None] = Field(None)
+    definitions: Optional[Dict[str, "Draft04JsonSchema"]] = Field(None)
+    properties: Optional[Dict[str, "Draft04JsonSchema"]] = Field(None)
+    pattern_properties: Optional[Dict[str, "Draft04JsonSchema"]] = Field(None)
+    all_of: Optional[List["Draft04JsonSchema"]] = Field(None)
+    any_of: Optional[List["Draft04JsonSchema"]] = Field(None)
+    one_of: Optional[List["Draft04JsonSchema"]] = Field(None)
+    not_: Optional["Draft04JsonSchema"] = Field(None, alias="not")
 
 
-class _Draft06JsonSchema(_JsonSchemaBase):
+class Draft06JsonSchema(_JsonSchemaBase):
+    """Model for Draft 6 JSON Schema."""
+
     id: Optional[str] = Field(None, alias="$id")
     # ref: Optional[str] = Field(None, alias="$ref")
     examples: Optional[List[Any]] = Field(None)
     exclusive_maximum: Optional[float] = Field(None)
     exclusive_minimum: Optional[float] = Field(None)
-    contains: Optional[Draft06JsonSchema] = Field(None)
+    contains: Optional["Draft06JsonSchema"] = Field(None)
     required: Optional[StringArray] = Field(None)  # type: ignore
     dependencies: Optional[  # type: ignore
-        Dict[str, Union[Draft06JsonSchema, StringArray]]
+        Dict[str, Union["Draft06JsonSchema", StringArray]]
     ] = Field(None)
-    property_names: Optional[Draft06JsonSchema] = Field(None)
+    property_names: Optional["Draft06JsonSchema"] = Field(None)
     const: Any = Field(None)
-
-
-class Draft06JsonSchema(_Draft06JsonSchema):
-    """Model for Draft 6 JSON Schema."""
 
     schema_: str = Field("http://json-schema.org/draft-06/schema#", alias="$schema")
 
@@ -247,20 +249,33 @@ class Draft06JsonSchema(_Draft06JsonSchema):
     # except we need the self-referrential type to be this class
     # and... technically, all subschemas may also be booleans as of Draft 6,
     # not just additional_properties and additional_items
-    additional_items: Union[bool, Draft06JsonSchema, None] = Field(None)
-    items: Union[Draft06JsonSchema, List[Draft06JsonSchema], None] = Field(None)
-    additional_properties: Union[bool, Draft06JsonSchema, None] = Field(None)
-    # definitions: Optional[Dict[str, Draft06JsonSchema]] = Field(None)
-    properties: Optional[Dict[str, Draft06JsonSchema]] = Field(None)
-    pattern_properties: Optional[Dict[str, Draft06JsonSchema]] = Field(None)
-    all_of: Optional[List[Draft06JsonSchema]] = Field(None)
-    any_of: Optional[List[Draft06JsonSchema]] = Field(None)
-    one_of: Optional[List[Draft06JsonSchema]] = Field(None)
-    not_: Optional[Draft06JsonSchema] = Field(None, alias="not")
+    additional_items: Union[bool, "Draft06JsonSchema", None] = Field(None)
+    items: Union["Draft06JsonSchema", List["Draft06JsonSchema"], None] = Field(None)
+    additional_properties: Union[bool, "Draft06JsonSchema", None] = Field(None)
+    # definitions: Optional[Dict[str, 'Draft06JsonSchema']] = Field(None)
+    properties: Optional[Dict[str, "Draft06JsonSchema"]] = Field(None)
+    pattern_properties: Optional[Dict[str, "Draft06JsonSchema"]] = Field(None)
+    all_of: Optional[List["Draft06JsonSchema"]] = Field(None)
+    any_of: Optional[List["Draft06JsonSchema"]] = Field(None)
+    one_of: Optional[List["Draft06JsonSchema"]] = Field(None)
+    not_: Optional["Draft06JsonSchema"] = Field(None, alias="not")
 
 
-class Draft07JsonSchema(_Draft06JsonSchema):
+class Draft07JsonSchema(_JsonSchemaBase):
     """Model for Draft 7 JSON Schema."""
+
+    id: Optional[str] = Field(None, alias="$id")
+    # ref: Optional[str] = Field(None, alias="$ref")
+    examples: Optional[List[Any]] = Field(None)
+    exclusive_maximum: Optional[float] = Field(None)
+    exclusive_minimum: Optional[float] = Field(None)
+    contains: Optional["Draft06JsonSchema"] = Field(None)
+    required: Optional[StringArray] = Field(None)  # type: ignore
+    dependencies: Optional[  # type: ignore
+        Dict[str, Union["Draft06JsonSchema", StringArray]]
+    ] = Field(None)
+    property_names: Optional["Draft06JsonSchema"] = Field(None)
+    const: Any = Field(None)
 
     schema_: str = Field("http://json-schema.org/draft-07/schema#", alias="$schema")
     comment: Optional[str] = Field(None, alias="$comment")
@@ -268,21 +283,21 @@ class Draft07JsonSchema(_Draft06JsonSchema):
     write_only: bool = Field(False)
     content_media_type: Optional[str] = Field(None)
     content_encoding: Optional[str] = Field(None)
-    if_: Optional[Draft07JsonSchema] = Field(None, alias="if")
-    then: Optional[Draft07JsonSchema] = Field(None)
-    else_: Optional[Draft07JsonSchema] = Field(None, alias="else")
+    if_: Optional["Draft07JsonSchema"] = Field(None, alias="if")
+    then: Optional["Draft07JsonSchema"] = Field(None)
+    else_: Optional["Draft07JsonSchema"] = Field(None, alias="else")
 
     # common to all schemas (could go in _JsonSchemaBase)
     # except we need the self-referrential type to be this class
     # and... technically, all subschemas may also be booleans as of Draft 6,
     # not just additional_properties and additional_items
-    additional_items: Union[bool, Draft07JsonSchema, None] = Field(None)
-    items: Union[Draft07JsonSchema, List[Draft07JsonSchema], None] = Field(None)
-    additional_properties: Union[bool, Draft07JsonSchema, None] = Field(None)
-    # definitions: Optional[Dict[str, Draft07JsonSchema]] = Field(None)
-    properties: Optional[Dict[str, Draft07JsonSchema]] = Field(None)
-    pattern_properties: Optional[Dict[str, Draft07JsonSchema]] = Field(None)
-    all_of: Optional[List[Draft07JsonSchema]] = Field(None)
-    any_of: Optional[List[Draft07JsonSchema]] = Field(None)
-    one_of: Optional[List[Draft07JsonSchema]] = Field(None)
-    not_: Optional[Draft07JsonSchema] = Field(None, alias="not")
+    additional_items: Union[bool, "Draft07JsonSchema", None] = Field(None)
+    items: Union["Draft07JsonSchema", List["Draft07JsonSchema"], None] = Field(None)
+    additional_properties: Union[bool, "Draft07JsonSchema", None] = Field(None)
+    # definitions: Optional[Dict[str, 'Draft07JsonSchema']] = Field(None)
+    properties: Optional[Dict[str, "Draft07JsonSchema"]] = Field(None)
+    pattern_properties: Optional[Dict[str, "Draft07JsonSchema"]] = Field(None)
+    all_of: Optional[List["Draft07JsonSchema"]] = Field(None)
+    any_of: Optional[List["Draft07JsonSchema"]] = Field(None)
+    one_of: Optional[List["Draft07JsonSchema"]] = Field(None)
+    not_: Optional["Draft07JsonSchema"] = Field(None, alias="not")

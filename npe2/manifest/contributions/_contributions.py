@@ -36,13 +36,22 @@ class ContributionPoints(BaseModel):
     widgets: Optional[List[WidgetContribution]]
     sample_data: Optional[List[SampleDataContribution]]
     themes: Optional[List[ThemeContribution]]
-    menus: Dict[str, List[MenuItem]] = Field(default_factory=dict, hide_docs=True)
-    submenus: Optional[List[SubmenuContribution]] = Field(None, hide_docs=True)
-    keybindings: Optional[List[KeyBindingContribution]] = Field(None, hide_docs=True)
+    menus: Dict[str, List[MenuItem]] = Field(
+        default_factory=dict,
+        # hide_docs=True,
+    )
+    submenus: Optional[List[SubmenuContribution]] = Field(
+        None,
+        # hide_docs=True,
+    )
+    keybindings: Optional[List[KeyBindingContribution]] = Field(
+        None,
+        # hide_docs=True,
+    )
 
     configuration: List[ConfigurationContribution] = Field(
         default_factory=list,
-        hide_docs=True,
+        # hide_docs=True,
         description="Configuration options for this plugin."
         "This section can either be a single object, representing a single category of"
         "settings, or an array of objects, representing multiple categories of"
