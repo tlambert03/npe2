@@ -91,11 +91,11 @@ CASES = [
 
 
 @pytest.mark.parametrize("schema, valid, invalid", CASES)
-def test_config_validation(schema, valid, invalid):
+def test_config_validation(schema: dict, valid, invalid):
     cfg = ConfigurationProperty(**schema)
     assert cfg.validate_instance(valid) == valid
 
-    match = schema.get("pattern_error_message", None)
+    match = schema.get("pattern_error_message")
     with pytest.raises(ValidationError, match=match):
         assert cfg.validate_instance(invalid)
 

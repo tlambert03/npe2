@@ -21,9 +21,13 @@ from npe2._pydantic_compat import iter_fields
 from ._plugin_manager import PluginManager
 from .manifest.contributions import (
     CommandContribution,
+    ConfigurationContribution,
     ContributionPoints,
+    KeyBindingContribution,
     ReaderContribution,
     SampleDataGenerator,
+    SubmenuContribution,
+    ThemeContribution,
     WidgetContribution,
     WriterContribution,
 )
@@ -34,8 +38,19 @@ T = TypeVar("T", bound=Callable[..., Any])
 
 
 # a mapping of contribution type to string name in the ContributionPoints
-# e.g. {ReaderContribution: 'readers'}
-CONTRIB_NAMES = {v.annotation: k for k, v in iter_fields(ContributionPoints)}
+
+CONTRIB_NAMES = {
+    CommandContribution: 'commands',
+    ReaderContribution: 'readers',
+    WriterContribution: 'writers',
+    WidgetContribution: 'widgets',
+    SampleDataGenerator: 'sample_data',
+    ThemeContribution: 'themes',
+    SubmenuContribution: 'submenus',
+    KeyBindingContribution: 'keybindings',
+    ConfigurationContribution: 'configuration'
+}
+
 for key in list(CONTRIB_NAMES):
     if getattr(key, "__origin__", "") == Union:
         v = CONTRIB_NAMES.pop(key)

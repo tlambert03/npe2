@@ -88,9 +88,6 @@ class ImportExportModel(BaseModel):
         if path.name == "pyproject.toml":
             data = data["tool"]["napari"]
 
-        from rich import print
-
-        print(data)
         obj = cls(**data)
         obj._source_file = Path(path).expanduser().absolute().resolve()
         return obj
